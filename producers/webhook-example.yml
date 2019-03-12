@@ -1,0 +1,8 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+functions:
+  webhook-example:
+    lang: dockerfile
+    handler: ./webhook-example
+    image: webhook-example:latest

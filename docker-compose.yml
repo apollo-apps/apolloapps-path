@@ -3,45 +3,62 @@ services:
   nsqlookupd:
     image: nsqio/nsq
     command: /nsqlookupd
+    env_file:
+      - .env
     ports:
-      - "4160"
-      - "4161"
-    deploy:
-      mode: replicated
-      replicas: 1
+      - "${NSQ_LOOKUPD_TCP_PORT:-4160}"
+      - "${NSQ_LOOKUPD_HTTP_PORT:-4161}"
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+
   nsqd:
     image: nsqio/nsq
     command: /nsqd --broadcast-address=nsqd --lookupd-tcp-address=nsqlookupd:4160
+    env_file:
+      - .env
     depends_on:
       - nsqlookupd
     ports:
-      - "4150"
-      - "4151"
-    deploy:
-      mode: replicated
-      replicas: 1
+      - "${NSQ_NSQD_TCP_PORT:-4150}"
+      - "${NSQ_NSQD_HTTP_PORT:-4151}"
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+
   nsqadmin:
     image: nsqio/nsq
     command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
+    env_file:
+      - .env
     depends_on:
       - nsqlookupd
     ports:
-      - "4171:4171"
-    deploy:
-      mode: replicated
-      replicas: 1
-  producer:
-    image: node:8.9.1-alpine
-    command: node /opt/tests/docker/nsq-producer.js
-    volumes:
-      - ./:/opt
-  consumer:
-    image: node:8.9.1-alpine
-    command: node /opt/tests/docker/nsq-consumer.js
-    volumes:
-      - ./:/opt
-  debug:
-    image: node:8.9.1-alpine
-    command: node -e 'setInterval((() => console.log(`[$${new Date().toISOString()}]`)), 15000)'
-    volumes:
-      - ./:/opt
+      - "${NSQ_ADMIN_PORT:-4171}"
+    # deploy:
+    #   mode: replicated
+    #   replicas: 1
+
+  # producer:
+  #   image: node:latest
+  #   command: node /opt/producers/node-cli-example/app/handler.js
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./:/opt
+  #
+  # consumer:
+  #   image: node:latest
+  #   command: node /opt/consumers/example/app/index.js
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./:/opt
+  #
+  # debug:
+  #   image: node:latest
+  #   command: node -e 'setInterval((() => console.log(`[$${new Date().toISOString()}]`)), 15000)'
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - ./:/opt
